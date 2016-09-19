@@ -1,3 +1,4 @@
+
 #ifndef incl__rainbow
 #define incl__rainbow
 
@@ -29,9 +30,9 @@ public:
 	RainbowKey(RainbowKey const& cpy);
     RainbowKey(unsigned char const* const key);
 public:
-	bool operator<(RainbowKey const& o) const;
-    bool operator==(RainbowKey const& o) const;
-    RainbowKey& operator=(RainbowKey const& o);
+	virtual bool operator<(RainbowKey const& o) const;
+    virtual bool operator==(RainbowKey const& o) const;
+    virtual RainbowKey& operator=(RainbowKey const& o);
 };
 
 class RainbowValue
@@ -43,8 +44,8 @@ public:
 	RainbowValue(RainbowValue const& cpy);
     RainbowValue(unsigned int const* const val);
 public:
-    bool operator==(RainbowValue const& o) const;
-    RainbowValue& operator=(RainbowValue const& o);
+    virtual bool operator==(RainbowValue const& o) const;
+    virtual RainbowValue& operator=(RainbowValue const& o);
 };
 
 
@@ -57,11 +58,12 @@ public:
     RainbowTable();
     virtual ~RainbowTable();
 public:
-    void read(string filename);
-    void write(string filename);
+    virtual void read(string filename);
+    virtual void write(string filename);
 };
 
 
 
 
 #endif
+

@@ -128,7 +128,11 @@ void RainbowTable::write(string filename)
 	fclose(file_handle);
 }
 
+/*********
+ * TESTS *
+ *********/
 
+/*
 int main()
 {
 	RainbowTable tbl0;
@@ -232,3 +236,4 @@ int main()
 	for (int i=0; i<3; i++) printf("%c", p5.first.k[i]); printf(" | ");
 	for (int i=0; i<5; i++) printf("%d ", p5.second.v[i]); printf("\n");
 }
+*/
