@@ -18,19 +18,16 @@ RainbowKey::RainbowKey(unsigned char const* const key)
         this->k[i] = key[i];
 }
 
-bool RainbowKey::operator<(RainbowKey const& o) const
-{
-	for (int i=0; i<3; i++)
-		if (this->k[i] < o.k[i])
-			return true;
-	return false;
-}
 bool RainbowKey::operator==(RainbowKey const& o) const
 {
     bool eq = true;
     for (int i=0; i<3; i++)
         eq = eq && (this->k[i] == o.k[i]);
     return eq;
+}
+bool RainbowKey::operator!=(RainbowKey const& o) const
+{
+    return !((*this) == o);
 }
 RainbowKey& RainbowKey::operator=(RainbowKey const& o)
 {
@@ -42,6 +39,7 @@ RainbowKey& RainbowKey::operator=(RainbowKey const& o)
 RainbowValue RainbowKey::hash()
 {
 	unsigned int hashed[5];
+
 	SHA1 sha;
 	sha.Reset();
 	sha.Input(this->k[0]); sha.Input(this->k[1]); sha.Input(this->k[2]);
@@ -76,11 +74,31 @@ bool RainbowValue::operator==(RainbowValue const& o) const
         eq = eq && (this->v[i] == o.v[i]);
     return eq;
 }
+bool RainbowValue::operator!=(RainbowValue const& o) const
+{
+    return !((*this) == o);
+}
 RainbowValue& RainbowValue::operator=(RainbowValue const& o)
 {
     for (int i=0; i<5; i++)
         this->v[i] = o.v[i];
     return *this;
+}
+
+RainbowKey RainbowValue::reduce(unsigned int c0, unsigned int c1, unsigned int c2)
+{
+    assert(0 <= c0 && c0 < 20);
+    assert(0 <= c1 && c1 < 20);
+    assert(0 <= c2 && c2 < 20);
+
+    unsigned char reduced[3];
+
+    reduced[0] = *(((unsigned char*) this->v) + c0);
+    reduced[1] = *(((unsigned char*) this->v) + c1);
+    reduced[2] = *(((unsigned char*) this->v) + c2);
+
+    RainbowKey result(reduced);
+    return result;
 }
 
 

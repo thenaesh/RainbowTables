@@ -2,7 +2,7 @@
 #include "sha1/sha1.h"
 
 
-void io_test()
+bool io_test()
 {
 	RainbowTable tbl0;
 
@@ -104,16 +104,18 @@ void io_test()
 	for (int i=0; i<5; i++) printf("%d ", p4.second.v[i]); printf("\n");
 	for (int i=0; i<3; i++) printf("%c", p5.first.k[i]); printf(" | ");
 	for (int i=0; i<5; i++) printf("%d ", p5.second.v[i]); printf("\n");
+
+    return true;
 }
 
-void hash_test()
+bool hash_test()
 {
 	unsigned char testkey[3];
 	unsigned int testhash[5];
 
-	testkey[0] = 'w';
-	testkey[1] = 't';
-	testkey[2] = 'f';
+	testkey[0] = 'o';
+	testkey[1] = 'm';
+	testkey[2] = 'g';
 
 	SHA1 sha;
 	sha.Reset();
@@ -123,8 +125,7 @@ void hash_test()
 	RainbowKey testkeywrapper(testkey);
 	RainbowValue testhashwrapper(testhash);
 
-	assert(testhashwrapper == testkeywrapper.hash());
-
+    printf("HASH TEST BEGIN\n");
 	printf("hypothesis\n");
 	for (int i=0; i<3; i++) printf("%c", testkeywrapper.k[i]);
 	printf(" | ");
@@ -136,10 +137,49 @@ void hash_test()
 	printf(" | ");
 	for (int i=0; i<5; i++) printf(" %d ", testkeywrapper.hash().v[i]);
 	printf("\n");
+    printf("HASH TEST END\n");
+
+	if (testhashwrapper != testkeywrapper.hash()) return false;
+
+    return true;
+}
+
+bool reduce_test()
+{
+    RainbowValue testval;
+
+    // all fit in the first byte on a little-endian system
+    testval.v[0] = 182; // byte 0   = 182
+    testval.v[1] = 201; // byte 4   = 201;
+    testval.v[2] = 69;  // byte 8   = 69
+    testval.v[3] = 42;  // byte 12  = 42
+    testval.v[4] = 32;  // byte 16  = 32
+
+    RainbowKey testkey;
+    
+    testkey.k[0] = (unsigned char) 201;
+    testkey.k[1] = (unsigned char) 69;
+    testkey.k[2] = (unsigned char) 32;
+
+    printf("REDUCE TEST BEGIN\n");
+    printf("hypothesis: "); for (int i=0; i<3; i++) printf("%d ", testkey.k[i]);                printf("\n");
+    printf("result: ");     for (int i=0; i<3; i++) printf("%d ", testval.reduce(4,8,16).k[i]); printf("\n");
+    printf("REDUCE TEST END\n");
+
+    if (testkey != testval.reduce(4,8,16)) return false; // 4 8 16
+
+    return true;
 }
 
 
 int main()
 {
-	hash_test();
+	map<string, bool> test_results;
+
+    test_results["Hash Test"]       = hash_test();
+    test_results["Reduce Test"]     = reduce_test();
+
+    printf("\n\n");
+    for (auto const& test_result : test_results)
+        printf("%s: %s\n", test_result.first.c_str(), test_result.second ? "Passed" : "Failed");
 }

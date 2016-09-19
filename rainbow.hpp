@@ -33,11 +33,11 @@ public:
 	RainbowKey(RainbowKey const& cpy);
     RainbowKey(unsigned char const* const key);
 public:
-	virtual bool operator<(RainbowKey const& o) const;
     virtual bool operator==(RainbowKey const& o) const;
+    virtual bool operator!=(RainbowKey const& o) const;
     virtual RainbowKey& operator=(RainbowKey const& o);
 public:
-	RainbowValue hash();
+	virtual RainbowValue hash();
 };
 
 class RainbowValue
@@ -50,7 +50,10 @@ public:
     RainbowValue(unsigned int const* const val);
 public:
     virtual bool operator==(RainbowValue const& o) const;
+    virtual bool operator!=(RainbowValue const& o) const;
     virtual RainbowValue& operator=(RainbowValue const& o);
+public:
+    virtual RainbowKey reduce(unsigned int c0, unsigned int c1, unsigned int c2);
 };
 
 
