@@ -18,6 +18,9 @@
 
 using namespace std;
 
+// FORWARD DECLARATIONS
+class RainbowValue;
+
 
 
 
@@ -33,6 +36,8 @@ public:
 	virtual bool operator<(RainbowKey const& o) const;
     virtual bool operator==(RainbowKey const& o) const;
     virtual RainbowKey& operator=(RainbowKey const& o);
+public:
+	RainbowValue hash();
 };
 
 class RainbowValue
