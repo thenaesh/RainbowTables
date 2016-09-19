@@ -150,14 +150,14 @@ bool reduce_test()
 
     // all fit in the first byte on a little-endian system
     testval.v[0] = 182; // byte 0   = 182
-    testval.v[1] = 201; // byte 4   = 201;
+    testval.v[1] = 255; // byte 4   = 255
     testval.v[2] = 69;  // byte 8   = 69
     testval.v[3] = 42;  // byte 12  = 42
     testval.v[4] = 32;  // byte 16  = 32
 
     RainbowKey testkey;
     
-    testkey.k[0] = (unsigned char) 201;
+    testkey.k[0] = (unsigned char) 255;
     testkey.k[1] = (unsigned char) 69;
     testkey.k[2] = (unsigned char) 32;
 
