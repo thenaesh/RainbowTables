@@ -5,12 +5,15 @@
 
 
 #include <cassert>
-#include <string>
+#include <cstring>
+#include <cstdio>
 #include <iostream>
-#include <fstream>
 #include <iomanip>
-#include <unordered_map>
+#include <string>
+#include <vector>
+#include <map>
 #include <functional>
+#include <utility>
 
 using namespace std;
 
@@ -19,34 +22,40 @@ using namespace std;
 
 class RainbowKey
 {
-    unsigned char[3] k;
+public:
+    unsigned char k[3];
 public:
     RainbowKey();
-    RainbowKey(const char const* key);
+	RainbowKey(RainbowKey const& cpy);
+    RainbowKey(unsigned char const* const key);
 public:
-    bool operator==(RainbowKey const& o);
+	bool operator<(RainbowKey const& o) const;
+    bool operator==(RainbowKey const& o) const;
     RainbowKey& operator=(RainbowKey const& o);
 };
 
 class RainbowValue
 {
-    unsigned int[5] v;
+public:
+    unsigned int v[5];
 public:
     RainbowValue();
-    RainbowValue(const int const* val);
+	RainbowValue(RainbowValue const& cpy);
+    RainbowValue(unsigned int const* const val);
 public:
-    bool operator==(RainbowKey const& o);
+    bool operator==(RainbowValue const& o) const;
     RainbowValue& operator=(RainbowValue const& o);
 };
 
 
-class RainbowTableBlock
+class RainbowTable
 {
-    unordered_map<RainbowKey, RainbowValue> rainbow_map;
-    function<RainbowValue, RainbowKey> reduce_func;
 public:
-    RainbowTableBlock();
-    virtual ~RainbowTableBlock();
+	vector<pair<RainbowKey, RainbowValue>> rainbow_list;
+    //map<RainbowKey, RainbowValue> rainbow_map;
+public:
+    RainbowTable();
+    virtual ~RainbowTable();
 public:
     void read(string filename);
     void write(string filename);
