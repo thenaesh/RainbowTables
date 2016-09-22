@@ -100,10 +100,14 @@ RainbowKey RainbowValue::reduce(unsigned int c0, unsigned int c1, unsigned int c
     RainbowKey result(reduced);
     return result;
 }
+RainbowKey RainbowValue::reduce(tuple<int, int, int> cs)
+{
+	return this->reduce(get<0>(cs), get<1>(cs), get<2>(cs));
+}
 
 
 
-RainbowTable::RainbowTable()
+RainbowTable::RainbowTable(vector<tuple<int, int, int>> reduce_seq_) : reduce_seq(reduce_seq_)
 {
 }
 
@@ -135,7 +139,6 @@ void RainbowTable::read(string filename)
 
 	fclose(file_handle);
 }
-
 void RainbowTable::write(string filename)
 {
 	FILE* file_handle = nullptr;
@@ -158,5 +161,45 @@ void RainbowTable::write(string filename)
 
 	fflush(file_handle);
 	fclose(file_handle);
+}
+
+pair<RainbowKey, RainbowValue> RainbowTable::computeChain(RainbowKey k0)
+{
+	RainbowKey currkey = k0;
+	RainbowValue currval;
+
+	for (auto const& r : this->reduce_seq) {
+		currval = currkey.hash();
+		currkey = currval.reduce(r);
+	}
+	currval = currkey.hash();
+
+	return make_pair(k0, currval);
+}
+
+pair<bool, RainbowKey> RainbowTable::existsInTable(RainbowValue v)
+{
+	for (auto const& p : this->rainbow_list) {
+		if (p.second == v) return make_pair(true, p.first);
+	}
+
+	// not found, if we reach this point
+	
+	RainbowKey fake_key;
+	return make_pair(false, fake_key);
+}
+RainbowKey RainbowTable::getInverse(RainbowValue v, RainbowKey start)
+{
+	RainbowKey   key = start;
+	RainbowValue val = start.hash();
+	for (auto const& r : this->reduce_seq) {
+		if (val == v) return key;
+
+		key = val.reduce(r);
+		val = key.hash();
+	}
+
+	assert (val == v);
+	return key;
 }
 
