@@ -50,6 +50,16 @@ RainbowValue RainbowKey::hash()
 	return result;
 }
 
+void RainbowKey::dbgPrint()
+{
+	for (int i=0; i<3; i++) printf("%c", this->k[i]);
+}
+void RainbowKey::dbgPrintln()
+{
+	this->dbgPrint();
+	printf("\n");
+}
+
 
 RainbowValue::RainbowValue()
 {
@@ -103,6 +113,16 @@ RainbowKey RainbowValue::reduce(unsigned int c0, unsigned int c1, unsigned int c
 RainbowKey RainbowValue::reduce(tuple<int, int, int> cs)
 {
 	return this->reduce(get<0>(cs), get<1>(cs), get<2>(cs));
+}
+
+void RainbowValue::dbgPrint()
+{
+	for (int i=0; i<5; i++) printf("%d ", this->v[i]);
+}
+void RainbowValue::dbgPrintln()
+{
+	this->dbgPrint();
+	printf("\n");
 }
 
 
@@ -176,8 +196,12 @@ pair<RainbowKey, RainbowValue> RainbowTable::computeChain(RainbowKey k0)
 
 	return make_pair(k0, currval);
 }
-
-pair<bool, RainbowKey> RainbowTable::existsInTable(RainbowValue v)
+void RainbowTable::buildTable(vector<RainbowKey> const& words)
+{
+	for (RainbowKey word : words)
+		this->rainbow_list.push_back(this->computeChain(word));
+}
+pair<bool, RainbowKey> RainbowTable::getChainStart(RainbowValue v)
 {
 	for (auto const& p : this->rainbow_list) {
 		if (p.second == v) return make_pair(true, p.first);
@@ -188,7 +212,7 @@ pair<bool, RainbowKey> RainbowTable::existsInTable(RainbowValue v)
 	RainbowKey fake_key;
 	return make_pair(false, fake_key);
 }
-RainbowKey RainbowTable::getInverse(RainbowValue v, RainbowKey start)
+RainbowKey RainbowTable::getInverseInChain(RainbowValue v, RainbowKey start)
 {
 	RainbowKey   key = start;
 	RainbowValue val = start.hash();
@@ -201,5 +225,27 @@ RainbowKey RainbowTable::getInverse(RainbowValue v, RainbowKey start)
 
 	assert (val == v);
 	return key;
+}
+pair<bool, RainbowKey> RainbowTable::getInverse(RainbowValue v)
+{
+	int K = this->reduce_seq.size();
+
+	for (int i=K; i>=0; i--) {
+		RainbowValue hash_to_check = v;
+
+		for (int j = i; j<K; j++) {
+			hash_to_check = hash_to_check.reduce(this->reduce_seq[j]).hash();
+		}
+
+		auto chain_to_start_traversing = this->getChainStart(hash_to_check);
+		if (chain_to_start_traversing.first) {
+			// we have found a guaranteed starting point
+			RainbowKey inv = this->getInverseInChain(v, chain_to_start_traversing.second);
+			return make_pair(true, inv);
+		}
+	}
+	// if we reach this point, FAIL
+	RainbowKey fake_key;
+	return make_pair(false, fake_key);
 }
 

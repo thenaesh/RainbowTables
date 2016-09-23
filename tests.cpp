@@ -112,16 +112,11 @@ bool io_test()
 	pair<RainbowKey, RainbowValue> p3 = tbl1.rainbow_list.at(2);
 	pair<RainbowKey, RainbowValue> p4 = tbl1.rainbow_list.at(3);
 	pair<RainbowKey, RainbowValue> p5 = tbl1.rainbow_list.at(4);
-	for (int i=0; i<3; i++) printf("%c", p1.first.k[i]); printf(" | ");
-	for (int i=0; i<5; i++) printf("%d ", p1.second.v[i]); printf("\n");
-	for (int i=0; i<3; i++) printf("%c", p2.first.k[i]); printf(" | ");
-	for (int i=0; i<5; i++) printf("%d ", p2.second.v[i]); printf("\n");
-	for (int i=0; i<3; i++) printf("%c", p3.first.k[i]); printf(" | ");
-	for (int i=0; i<5; i++) printf("%d ", p3.second.v[i]); printf("\n");
-	for (int i=0; i<3; i++) printf("%c", p4.first.k[i]); printf(" | ");
-	for (int i=0; i<5; i++) printf("%d ", p4.second.v[i]); printf("\n");
-	for (int i=0; i<3; i++) printf("%c", p5.first.k[i]); printf(" | ");
-	for (int i=0; i<5; i++) printf("%d ", p5.second.v[i]); printf("\n");
+	p1.first.dbgPrint(); printf(" | "); p1.second.dbgPrint(); printf("\n");
+	p2.first.dbgPrint(); printf(" | "); p2.second.dbgPrint(); printf("\n");
+	p3.first.dbgPrint(); printf(" | "); p3.second.dbgPrint(); printf("\n");
+	p4.first.dbgPrint(); printf(" | "); p4.second.dbgPrint(); printf("\n");
+	p5.first.dbgPrint(); printf(" | "); p5.second.dbgPrint(); printf("\n");
 
     return true;
 }
@@ -145,16 +140,8 @@ bool hash_test()
 
     printf("HASH TEST BEGIN\n");
 	printf("hypothesis\n");
-	for (int i=0; i<3; i++) printf("%c", testkeywrapper.k[i]);
-	printf(" | ");
-	for (int i=0; i<5; i++) printf(" %d ", testhashwrapper.v[i]);
-	printf("\n");
-
-	printf("result\n");
-	for (int i=0; i<3; i++) printf("%c", testkeywrapper.k[i]);
-	printf(" | ");
-	for (int i=0; i<5; i++) printf(" %d ", testkeywrapper.hash().v[i]);
-	printf("\n");
+	testkeywrapper.dbgPrint(); printf(" | "); testhashwrapper.dbgPrint(); printf("\n");
+	printf("result\n"); testkeywrapper.dbgPrint(); printf(" | "); testkeywrapper.hash().dbgPrint(); printf("\n");
     printf("HASH TEST END\n");
 
 	if (testhashwrapper != testkeywrapper.hash()) return false;
@@ -180,8 +167,8 @@ bool reduce_test()
     testkey.k[2] = (unsigned char) 32;
 
     printf("REDUCE TEST BEGIN\n");
-    printf("hypothesis: "); for (int i=0; i<3; i++) printf("%d ", testkey.k[i]);                printf("\n");
-    printf("result: ");     for (int i=0; i<3; i++) printf("%d ", testval.reduce(4,8,16).k[i]); printf("\n");
+    printf("hypothesis: "); testkey.dbgPrintln();
+    printf("result: ");     testval.reduce(4,8,16).dbgPrintln();
     printf("REDUCE TEST END\n");
 
     if (testkey != testval.reduce(4,8,16)) return false; // 4 8 16
@@ -189,7 +176,7 @@ bool reduce_test()
     return true;
 }
 
-bool hash_existence_test()
+bool chain_start_test()
 {
 	RainbowTable tbl(reduce_seq);
 
@@ -218,14 +205,14 @@ bool hash_existence_test()
 	tbl.rainbow_list.push_back(p1);
 	tbl.rainbow_list.push_back(p3);
 
-	if (!(tbl.existsInTable(p1.second).first && tbl.existsInTable(p1.second).second == p1.first)) return false;
-	if (tbl.existsInTable(p2.second).first)  return false;
-	if (!(tbl.existsInTable(p3.second).first && tbl.existsInTable(p3.second).second == p3.first)) return false;
+	if (!(tbl.getChainStart(p1.second).first && tbl.getChainStart(p1.second).second == p1.first)) return false;
+	if (tbl.getChainStart(p2.second).first)  return false;
+	if (!(tbl.getChainStart(p3.second).first && tbl.getChainStart(p3.second).second == p3.first)) return false;
 
 	return true;
 }
 
-bool inverse_test()
+bool chain_inverse_test()
 {
 	RainbowTable tbl(reduce_seq);
 
@@ -235,7 +222,7 @@ bool inverse_test()
 	k1_[2] = 'l';
 	RainbowKey k1(k1_);
 	RainbowValue v1 = k1.hash();
-	if (tbl.getInverse(v1, k1) != k1) return false;
+	if (tbl.getInverseInChain(v1, k1) != k1) return false;
 
 	unsigned char k2_[3];
 	k2_[0] = 'w';
@@ -244,8 +231,8 @@ bool inverse_test()
 	RainbowKey k2(k2_);
 	RainbowValue v2 = k2.hash()
 						.reduce(tbl.reduce_seq[0]).hash();
-	if (tbl.getInverse(v2, k2) != k2.hash()
-									.reduce(tbl.reduce_seq[0])) return false;
+	if (tbl.getInverseInChain(v2, k2) != k2.hash()
+										   .reduce(tbl.reduce_seq[0])) return false;
 
 	unsigned char k3_[3];
 	k3_[0] = 'c';
@@ -256,10 +243,53 @@ bool inverse_test()
 						.reduce(tbl.reduce_seq[0]).hash()
 						.reduce(tbl.reduce_seq[1]).hash()
 						.reduce(tbl.reduce_seq[2]).hash();
-	if (tbl.getInverse(v3, k3) != k3.hash()
-									.reduce(tbl.reduce_seq[0]).hash()
-									.reduce(tbl.reduce_seq[1]).hash()
-									.reduce(tbl.reduce_seq[2])) return false;
+	if (tbl.getInverseInChain(v3, k3) != k3.hash()
+										   .reduce(tbl.reduce_seq[0]).hash()
+										   .reduce(tbl.reduce_seq[1]).hash()
+										   .reduce(tbl.reduce_seq[2])) return false;
+
+	return true;
+}
+
+bool full_inverse_test()
+{
+	unsigned char k1_[3];
+	k1_[0] = 'l';
+	k1_[1] = 'o';
+	k1_[2] = 'l';
+	RainbowKey k1(k1_);
+
+	unsigned char k2_[3];
+	k2_[0] = 'w';
+	k2_[1] = 't';
+	k2_[2] = 'f';
+	RainbowKey k2(k2_);
+
+	unsigned char k3_[3];
+	k3_[0] = 'c';
+	k3_[1] = 'c';
+	k3_[2] = 'b';
+	RainbowKey k3(k3_);
+
+	RainbowTable tbl(reduce_seq);
+
+	vector<RainbowKey> words;
+	words.push_back(k1);
+	words.push_back(k2);
+
+	tbl.buildTable(words);
+
+	RainbowKey t1 = k1;
+	RainbowKey t2 = k2.hash().reduce(tbl.reduce_seq[0]);
+	RainbowKey t3 = k3.hash().reduce(tbl.reduce_seq[0]).hash().reduce(tbl.reduce_seq[1]);
+
+	auto inv1 = tbl.getInverse(t1.hash());
+	auto inv2 = tbl.getInverse(t2.hash());
+	auto inv3 = tbl.getInverse(t3.hash());
+
+	if (!(inv1.first && inv1.second == t1)) return false;
+	if (!(inv2.first && inv2.second == t2)) return false;
+	if (inv3.first) return false;
 
 	return true;
 }
@@ -272,8 +302,9 @@ int main()
 
     test_results["Hash Test"]				= hash_test();
     test_results["Reduce Test"]				= reduce_test();
-	test_results["Hash Existence Test"]		= hash_existence_test();
-	test_results["Inverse Test"]			= inverse_test();
+	test_results["Chain Start Test"]		= chain_start_test();
+	test_results["Chain Inverse Test"]		= chain_inverse_test();
+	test_results["Full Inverse Test"]		= full_inverse_test();
 
     printf("\n\n");
     for (auto const& test_result : test_results)

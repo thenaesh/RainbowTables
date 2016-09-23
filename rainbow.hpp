@@ -40,6 +40,9 @@ public:
     virtual RainbowKey& operator=(RainbowKey const& o);
 
 	virtual RainbowValue hash();
+
+	virtual void dbgPrint();
+	virtual void dbgPrintln();
 };
 
 class RainbowValue
@@ -59,6 +62,9 @@ public:
 	                          unsigned int c1,
 							  unsigned int c2);
 	virtual RainbowKey reduce(tuple<int, int, int> cs);
+
+	virtual void dbgPrint();
+	virtual void dbgPrintln();
 };
 
 
@@ -81,9 +87,36 @@ public:
 	 * return (k0, vk)
 	 */
 	virtual pair<RainbowKey, RainbowValue> computeChain(RainbowKey k0);
-
-	virtual pair<bool, RainbowKey> existsInTable(RainbowValue v);
-	virtual RainbowKey getInverse(RainbowValue v, RainbowKey start);
+	/*
+	 * takes in a list of start points, words
+	 * populates rainbow_list using reduce_seq
+	 */
+	void buildTable(vector<RainbowKey> const& words);
+	/*
+	 * takes a hashed value, v
+	 * checks if v is one of the terminating hashes
+	 * returns true and the corresponding starting key if so
+	 * returns false and some random key otherwise
+	 */
+	virtual pair<bool, RainbowKey> getChainStart(RainbowValue v);
+	/*
+	 * takes a hash, v
+	 * takes a starting key, start
+	 * traverses the hash chain to find the key that hashes to v
+	 * returns that key
+	 * ASSUMPTION: such a key exists
+	 */
+	virtual RainbowKey getInverseInChain(RainbowValue v, RainbowKey start);
+	/*
+	 * takes a hash, v
+	 * finds a chain to start from and traverses the chain
+	 * to find the key that hashes to v
+	 * returns true and the key if found
+	 * returns false and a random key otherwise (FAILURE)
+	 * 
+	 * THIS IS THE WHOLE POINT OF THE RAINBOW TABLE
+	 */
+	virtual pair<bool, RainbowKey> getInverse(RainbowValue v);
 };
 
 
