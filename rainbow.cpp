@@ -50,11 +50,11 @@ RainbowValue RainbowKey::hash()
 	return result;
 }
 
-void RainbowKey::dbgPrint()
+void RainbowKey::dbgPrint() const
 {
 	for (int i=0; i<3; i++) printf("%c", this->k[i]);
 }
-void RainbowKey::dbgPrintln()
+void RainbowKey::dbgPrintln() const
 {
 	this->dbgPrint();
 	printf("\n");
@@ -97,15 +97,11 @@ RainbowValue& RainbowValue::operator=(RainbowValue const& o)
 
 RainbowKey RainbowValue::reduce(unsigned int c0, unsigned int c1, unsigned int c2)
 {
-    assert(0 <= c0 && c0 < 20);
-    assert(0 <= c1 && c1 < 20);
-    assert(0 <= c2 && c2 < 20);
-
     unsigned char reduced[3];
 
-    reduced[0] = *(((unsigned char*) this->v) + c0);
-    reduced[1] = *(((unsigned char*) this->v) + c1);
-    reduced[2] = *(((unsigned char*) this->v) + c2);
+	reduced[0] = (unsigned char)((this->v[0] + c0) % 256);
+	reduced[1] = (unsigned char)((this->v[1] + c1) % 256);
+	reduced[2] = (unsigned char)((this->v[2] + c2) % 256);
 
     RainbowKey result(reduced);
     return result;
@@ -115,11 +111,11 @@ RainbowKey RainbowValue::reduce(tuple<int, int, int> cs)
 	return this->reduce(get<0>(cs), get<1>(cs), get<2>(cs));
 }
 
-void RainbowValue::dbgPrint()
+void RainbowValue::dbgPrint() const
 {
-	for (int i=0; i<5; i++) printf("%d ", this->v[i]);
+	for (int i=0; i<5; i++) printf("%u ", this->v[i]);
 }
-void RainbowValue::dbgPrintln()
+void RainbowValue::dbgPrintln() const
 {
 	this->dbgPrint();
 	printf("\n");
@@ -127,10 +123,15 @@ void RainbowValue::dbgPrintln()
 
 
 
-RainbowTable::RainbowTable(vector<tuple<int, int, int>> reduce_seq_) : reduce_seq(reduce_seq_)
+RainbowTable::RainbowTable(vector<tuple<int, int, int>> const& reduce_seq)
 {
+	this->reduce_seq = reduce_seq;
 }
-
+RainbowTable::RainbowTable()
+{
+	for (int a = 0; a < 56; a++)
+		this->reduce_seq.push_back(make_tuple(a, 0, 0));
+}
 RainbowTable::~RainbowTable()
 {
 }
@@ -183,14 +184,18 @@ void RainbowTable::write(string filename)
 	fclose(file_handle);
 }
 
-pair<RainbowKey, RainbowValue> RainbowTable::computeChain(RainbowKey k0)
+void RainbowTable::populateRainbowHashmap()
+{
+}
+
+pair<RainbowKey, RainbowValue> RainbowTable::computeChain(RainbowKey k0) const
 {
 	RainbowKey currkey = k0;
 	RainbowValue currval;
 
-	for (auto const& r : this->reduce_seq) {
+	for (unsigned int i = 0; i < this->reduce_seq.size(); i++) {
 		currval = currkey.hash();
-		currkey = currval.reduce(r);
+		currkey = currval.reduce(this->reduce_seq[i]);
 	}
 	currval = currkey.hash();
 
@@ -201,7 +206,33 @@ void RainbowTable::buildTable(vector<RainbowKey> const& words)
 	for (RainbowKey word : words)
 		this->rainbow_list.push_back(this->computeChain(word));
 }
-pair<bool, RainbowKey> RainbowTable::getChainStart(RainbowValue v)
+void RainbowTable::buildTable()
+{
+	RainbowKey word;
+
+	for (unsigned short c1 = 0; c1 < 256; c1 += 5) {
+		for (unsigned short c2 = 0; c2 < 256; c2 += 7) {
+			for (unsigned short c3 = 0; c3 < 256; c3 += 11) {
+				word.k[0] = static_cast<unsigned char>(c1);
+				word.k[1] = static_cast<unsigned char>(c2);
+				word.k[2] = static_cast<unsigned char>(c3);
+
+				auto chain = this->computeChain(word);
+				auto currently_exists = this->getChainStart(chain.second).first;
+
+				if (!currently_exists)
+					this->rainbow_list.push_back(chain);
+
+				printf("%s %u %u %u\n", currently_exists ? "not added" : "added",
+						static_cast<unsigned char>(c1),
+						static_cast<unsigned char>(c2),
+						static_cast<unsigned char>(c3));
+			}
+		}
+	}
+}
+
+pair<bool, RainbowKey> RainbowTable::getChainStart(RainbowValue v) const
 {
 	for (auto const& p : this->rainbow_list) {
 		if (p.second == v) return make_pair(true, p.first);
@@ -212,36 +243,47 @@ pair<bool, RainbowKey> RainbowTable::getChainStart(RainbowValue v)
 	RainbowKey fake_key;
 	return make_pair(false, fake_key);
 }
-RainbowKey RainbowTable::getInverseInChain(RainbowValue v, RainbowKey start)
+pair<bool, RainbowKey> RainbowTable::getInverseInChain(RainbowValue v, RainbowKey start) const
 {
 	RainbowKey   key = start;
 	RainbowValue val = start.hash();
-	for (auto const& r : this->reduce_seq) {
-		if (val == v) return key;
 
-		key = val.reduce(r);
+	for (int i = 0; i < this->reduce_seq.size(); i++) {
+		//printf("Current val before R%d: ", i); val.dbgPrintln();
+		if (val == v) return make_pair(true, key);
+
+		key = val.reduce(this->reduce_seq[i]);
 		val = key.hash();
 	}
 
-	assert (val == v);
-	return key;
+	//printf("val = "); val.dbgPrintln();
+
+	if (val != v)	return make_pair(false, key);
+	else			return make_pair(true,  key);
 }
-pair<bool, RainbowKey> RainbowTable::getInverse(RainbowValue v)
+pair<bool, RainbowKey> RainbowTable::getInverse(RainbowValue v) const
 {
 	int K = this->reduce_seq.size();
 
 	for (int i=K; i>=0; i--) {
 		RainbowValue hash_to_check = v;
 
+		//printf("i = %d\n", i);
 		for (int j = i; j<K; j++) {
+			//printf("%d ", j);
 			hash_to_check = hash_to_check.reduce(this->reduce_seq[j]).hash();
 		}
+		//printf("\n");
 
 		auto chain_to_start_traversing = this->getChainStart(hash_to_check);
 		if (chain_to_start_traversing.first) {
 			// we have found a guaranteed starting point
-			RainbowKey inv = this->getInverseInChain(v, chain_to_start_traversing.second);
-			return make_pair(true, inv);
+			//printf("start traversing, K = %d, i = %d\n", K, i);
+			//printf("Hash to find: "); v.dbgPrintln();
+			//printf("Hash to check: "); hash_to_check.dbgPrintln();
+			//printf("Key to start from: "); chain_to_start_traversing.second.dbgPrintln();
+			auto inv = this->getInverseInChain(v, chain_to_start_traversing.second);
+			if (inv.first) return make_pair(true, inv.second);
 		}
 	}
 	// if we reach this point, FAIL

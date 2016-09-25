@@ -11,18 +11,9 @@ void printRainbowSequence(vector<tuple<int, int, int>> const& seq)
 	printf("\n");
 }
 
-// some reduce functions
-tuple<int, int, int> r0 = make_tuple(1, 4, 7);
-tuple<int, int, int> r1 = make_tuple(3, 6, 2);
-tuple<int, int, int> r2 = make_tuple(14, 9, 16);
-tuple<int, int, int> r3 = make_tuple(13, 5, 11);
-tuple<int, int, int> r4 = make_tuple(6, 1, 12);
-
-vector<tuple<int, int, int>> reduce_seq = {r0, r1, r2, r3, r4};
-
 bool io_test()
 {
-	RainbowTable tbl0(reduce_seq);
+	RainbowTable tbl0;
 
 	unsigned char k1_[3];
 	k1_[0] = 'l';
@@ -30,27 +21,11 @@ bool io_test()
 	k1_[2] = 'l';
 	RainbowKey k1(k1_);
 
-	unsigned int v1_[5];
-	v1_[0] = 3;
-	v1_[1] = 1;
-	v1_[2] = 4;
-	v1_[3] = 1;
-	v1_[4] = 5;
-	RainbowValue v1(v1_);
-
 	unsigned char k2_[3];
 	k2_[0] = 'w';
 	k2_[1] = 't';
 	k2_[2] = 'f';
 	RainbowKey k2(k2_);
-
-	unsigned int v2_[5];
-	v2_[0] = 9;
-	v2_[1] = 8;
-	v2_[2] = 7;
-	v2_[3] = 6;
-	v2_[4] = 8;
-	RainbowValue v2(v2_);
 
 	unsigned char k3_[3];
 	k3_[0] = 'c';
@@ -58,27 +33,11 @@ bool io_test()
 	k3_[2] = 'b';
 	RainbowKey k3(k3_);
 
-	unsigned int v3_[5];
-	v3_[0] = 1;
-	v3_[1] = 2;
-	v3_[2] = 7;
-	v3_[3] = 4;
-	v3_[4] = 5;
-	RainbowValue v3(v3_);
-
 	unsigned char k4_[3];
 	k4_[0] = 'o';
 	k4_[1] = 'm';
 	k4_[2] = 'g';
 	RainbowKey k4(k4_);
-
-	unsigned int v4_[5];
-	v4_[0] = 5;
-	v4_[1] = 4;
-	v4_[2] = 3;
-	v4_[3] = 9;
-	v4_[4] = 1;
-	RainbowValue v4(v4_);
 
 	unsigned char k5_[3];
 	k5_[0] = 'b';
@@ -86,26 +45,17 @@ bool io_test()
 	k5_[2] = 'q';
 	RainbowKey k5(k5_);
 
-	unsigned int v5_[5];
-	v5_[0] = 100;
-	v5_[1] = 102;
-	v5_[2] = 104;
-	v5_[3] = 106;
-	v5_[4] = 108;
-	RainbowValue v5(v5_);
-
-	tbl0.rainbow_list.push_back(make_pair(k1, v1));
-	tbl0.rainbow_list.push_back(make_pair(k2, v2));
-	tbl0.rainbow_list.push_back(make_pair(k3, v3));
-	tbl0.rainbow_list.push_back(make_pair(k4, v4));
-	tbl0.rainbow_list.push_back(make_pair(k5, v5));
+	vector<RainbowKey> words = {k1, k2, k3, k4, k5};
+	tbl0.buildTable(words);
 
 	tbl0.write("RAINBOW");
 
 
-	RainbowTable tbl1(reduce_seq);
+	RainbowTable tbl1;
 
 	tbl1.read("RAINBOW");
+	
+	if (tbl0.rainbow_list != tbl1.rainbow_list) return false;
 
 	pair<RainbowKey, RainbowValue> p1 = tbl1.rainbow_list.at(0);
 	pair<RainbowKey, RainbowValue> p2 = tbl1.rainbow_list.at(1);
@@ -178,7 +128,7 @@ bool reduce_test()
 
 bool chain_start_test()
 {
-	RainbowTable tbl(reduce_seq);
+	RainbowTable tbl;
 
 	unsigned char k1_[3];
 	k1_[0] = 'l';
@@ -193,9 +143,9 @@ bool chain_start_test()
 	RainbowKey k2(k2_);
 
 	unsigned char k3_[3];
-	k3_[0] = 'c';
-	k3_[1] = 'c';
-	k3_[2] = 'b';
+	k3_[0] = 'o';
+	k3_[1] = 'm';
+	k3_[2] = 'g';
 	RainbowKey k3(k3_);
 
 	auto p1 = tbl.computeChain(k1);
@@ -205,16 +155,32 @@ bool chain_start_test()
 	tbl.rainbow_list.push_back(p1);
 	tbl.rainbow_list.push_back(p3);
 
-	if (!(tbl.getChainStart(p1.second).first && tbl.getChainStart(p1.second).second == p1.first)) return false;
-	if (tbl.getChainStart(p2.second).first)  return false;
-	if (!(tbl.getChainStart(p3.second).first && tbl.getChainStart(p3.second).second == p3.first)) return false;
+	printf("p1: "); p1.first.dbgPrint(); printf(" | "); p1.second.dbgPrint(); printf("\n");
+	printf("p2: "); p2.first.dbgPrint(); printf(" | "); p2.second.dbgPrint(); printf("\n");
+	printf("p3: "); p3.first.dbgPrint(); printf(" | "); p3.second.dbgPrint(); printf("\n");
+
+	if (!(tbl.getChainStart(p1.second).first && tbl.getChainStart(p1.second).second == p1.first)) {
+		printf("p1 wrong value: ");
+		tbl.getChainStart(p1.second).second.dbgPrintln();
+		return false;
+	}
+	if (tbl.getChainStart(p2.second).first) {
+		printf("p2 wrong value: ");
+		tbl.getChainStart(p2.second).second.dbgPrintln();
+		return false;
+	}
+	if (!(tbl.getChainStart(p3.second).first && tbl.getChainStart(p3.second).second == p3.first)) {
+		printf("p3 wrong value: ");
+		tbl.getChainStart(p3.second).second.dbgPrintln();
+		return false;
+	}
 
 	return true;
 }
 
 bool chain_inverse_test()
 {
-	RainbowTable tbl(reduce_seq);
+	RainbowTable tbl;
 
 	unsigned char k1_[3];
 	k1_[0] = 'l';
@@ -222,7 +188,7 @@ bool chain_inverse_test()
 	k1_[2] = 'l';
 	RainbowKey k1(k1_);
 	RainbowValue v1 = k1.hash();
-	if (tbl.getInverseInChain(v1, k1) != k1) return false;
+	if (tbl.getInverseInChain(v1, k1).second != k1) return false;
 
 	unsigned char k2_[3];
 	k2_[0] = 'w';
@@ -231,8 +197,8 @@ bool chain_inverse_test()
 	RainbowKey k2(k2_);
 	RainbowValue v2 = k2.hash()
 						.reduce(tbl.reduce_seq[0]).hash();
-	if (tbl.getInverseInChain(v2, k2) != k2.hash()
-										   .reduce(tbl.reduce_seq[0])) return false;
+	if (tbl.getInverseInChain(v2, k2).second != k2.hash()
+												  .reduce(tbl.reduce_seq[0])) return false;
 
 	unsigned char k3_[3];
 	k3_[0] = 'c';
@@ -243,10 +209,10 @@ bool chain_inverse_test()
 						.reduce(tbl.reduce_seq[0]).hash()
 						.reduce(tbl.reduce_seq[1]).hash()
 						.reduce(tbl.reduce_seq[2]).hash();
-	if (tbl.getInverseInChain(v3, k3) != k3.hash()
-										   .reduce(tbl.reduce_seq[0]).hash()
-										   .reduce(tbl.reduce_seq[1]).hash()
-										   .reduce(tbl.reduce_seq[2])) return false;
+	if (tbl.getInverseInChain(v3, k3).second != k3.hash()
+												  .reduce(tbl.reduce_seq[0]).hash()
+												  .reduce(tbl.reduce_seq[1]).hash()
+												  .reduce(tbl.reduce_seq[2])) return false;
 
 	return true;
 }
@@ -254,24 +220,24 @@ bool chain_inverse_test()
 bool full_inverse_test()
 {
 	unsigned char k1_[3];
-	k1_[0] = 'l';
-	k1_[1] = 'o';
-	k1_[2] = 'l';
+	k1_[0] = 'g';
+	k1_[1] = 'g';
+	k1_[2] = 'g';
 	RainbowKey k1(k1_);
 
 	unsigned char k2_[3];
-	k2_[0] = 'w';
-	k2_[1] = 't';
-	k2_[2] = 'f';
+	k2_[0] = 'b';
+	k2_[1] = 'c';
+	k2_[2] = 'd';
 	RainbowKey k2(k2_);
 
 	unsigned char k3_[3];
-	k3_[0] = 'c';
-	k3_[1] = 'c';
-	k3_[2] = 'b';
+	k3_[0] = 'a';
+	k3_[1] = 'b';
+	k3_[2] = 'c';
 	RainbowKey k3(k3_);
 
-	RainbowTable tbl(reduce_seq);
+	RainbowTable tbl;
 
 	vector<RainbowKey> words;
 	words.push_back(k1);
@@ -280,7 +246,13 @@ bool full_inverse_test()
 	tbl.buildTable(words);
 
 	RainbowKey t1 = k1;
-	RainbowKey t2 = k2.hash().reduce(tbl.reduce_seq[0]);
+	RainbowKey t2 = k2.hash().reduce(tbl.reduce_seq[0])
+					  .hash().reduce(tbl.reduce_seq[1])
+					  .hash().reduce(tbl.reduce_seq[2])
+					  .hash().reduce(tbl.reduce_seq[3])
+					  .hash().reduce(tbl.reduce_seq[4])
+					  .hash().reduce(tbl.reduce_seq[5])
+					  .hash().reduce(tbl.reduce_seq[6]);
 	RainbowKey t3 = k3.hash().reduce(tbl.reduce_seq[0]).hash().reduce(tbl.reduce_seq[1]);
 
 	auto inv1 = tbl.getInverse(t1.hash());
@@ -294,17 +266,88 @@ bool full_inverse_test()
 	return true;
 }
 
+bool general_test()
+{
+	RainbowTable tbl;
+
+	tbl.buildTable();
+	//tbl.read("RAINBOW");
+	printf("Size of Table: %u\n", static_cast<unsigned int>(tbl.rainbow_list.size()));
+
+	tbl.write("RAINBOW");
+
+
+	unsigned char k1_[3];
+	k1_[0] = 'g';
+	k1_[1] = 'g';
+	k1_[2] = 'g';
+	RainbowKey k1(k1_);
+
+	unsigned char k2_[3];
+	k2_[0] = 'b';
+	k2_[1] = 'c';
+	k2_[2] = 'd';
+	RainbowKey k2(k2_);
+
+	unsigned char k3_[3];
+	k3_[0] = 'a';
+	k3_[1] = 'b';
+	k3_[2] = 'c';
+	RainbowKey k3(k3_);
+
+	RainbowValue v1 = k1.hash();
+	RainbowValue v2 = k2.hash();
+	RainbowValue v3 = k3.hash();
+
+	auto p1 = tbl.getInverse(v1);
+	auto p2 = tbl.getInverse(v2);
+	auto p3 = tbl.getInverse(v3);
+
+	int num_success = 3;
+	if (!(p1.first && p1.second == k1)) num_success--;
+	if (!(p2.first && p2.second == k2)) num_success--;
+	if (!(p3.first && p3.second == k3)) num_success--;
+	printf("Number of Hits: %d\n", num_success);
+
+	return false;;
+}
+
+bool uniqueness_test()
+{
+	RainbowTable tbl;
+	//tbl.read("RAINBOW");
+	tbl.buildTable(); tbl.write("RAINBOW");
+
+	bool passed = true;
+
+	for (int i = 0; i < tbl.rainbow_list.size(); i++) {
+		int num_elements = 0;
+		for (int j = 0; j < tbl.rainbow_list.size(); j++)
+			if (tbl.rainbow_list[i].second == tbl.rainbow_list[j].second)
+				num_elements += 1;
+		if (num_elements != 1) passed = passed && false;
+		printf("uniqueness test %s for i = %d\n", (num_elements != 1) ? "failed" : "passed", i);
+	}
+
+	return passed;
+}
+
 
 int main()
 {
-	printRainbowSequence(reduce_seq);
+	RainbowTable tbl;
+	printRainbowSequence(tbl.reduce_seq);
+	printf("Reduce Sequence Length: %u\n", static_cast<unsigned int>(tbl.reduce_seq.size()));
 	map<string, bool> test_results;
 
-    test_results["Hash Test"]				= hash_test();
-    test_results["Reduce Test"]				= reduce_test();
-	test_results["Chain Start Test"]		= chain_start_test();
-	test_results["Chain Inverse Test"]		= chain_inverse_test();
-	test_results["Full Inverse Test"]		= full_inverse_test();
+    //test_results["I/O Test"]				= io_test();
+	//test_results["Hash Test"]				= hash_test();
+    //test_results["Reduce Test"]				= reduce_test();
+	//test_results["Chain Start Test"]		= chain_start_test();
+	//test_results["Chain Inverse Test"]		= chain_inverse_test();
+	//test_results["Full Inverse Test"]		= full_inverse_test();
+	//test_results["General Test"]			= general_test();
+	//test_results["Uniqueness Test"]			= uniqueness_test();
 
     printf("\n\n");
     for (auto const& test_result : test_results)

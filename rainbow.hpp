@@ -6,6 +6,7 @@
 
 
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include <cstdio>
 #include <iostream>
@@ -13,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <functional>
 #include <utility>
 #include <tuple>
@@ -26,6 +28,10 @@ class RainbowValue;
 
 
 
+/*
+ * class representing a 3-byte message
+ * size: 3 bytes
+ */
 class RainbowKey
 {
 public:
@@ -41,10 +47,14 @@ public:
 
 	virtual RainbowValue hash();
 
-	virtual void dbgPrint();
-	virtual void dbgPrintln();
+	virtual void dbgPrint() const;
+	virtual void dbgPrintln() const;
 };
 
+/*
+ * class representing a 20-byte SHA1 hash of a 3-byte message
+ * size: 20 bytes
+ */
 class RainbowValue
 {
 public:
@@ -63,22 +73,50 @@ public:
 							  unsigned int c2);
 	virtual RainbowKey reduce(tuple<int, int, int> cs);
 
-	virtual void dbgPrint();
-	virtual void dbgPrintln();
+	virtual void dbgPrint() const;
+	virtual void dbgPrintln() const;
 };
+
+
+namespace std
+{
+	template<>
+	class hash<RainbowValue>
+	{
+	public:
+		/*
+		 * implementation of FNV
+		 * so that RainbowValue can be used in unordered_list
+		 */
+		size_t operator()(RainbowValue const& val) const
+		{
+			size_t h = 2166136261;
+			for (int i=0; i<20; i++) {
+				unsigned char oct = ((unsigned char*) val.v)[i];
+				h = h ^ oct;
+				h = h * 16777619;
+			}
+			return h;
+		}
+	};
+}
 
 
 class RainbowTable
 {
 public:
+	unordered_list<RainbowValue, RainbowKey> rainbow_hashmap;
 	vector<pair<RainbowKey, RainbowValue>> rainbow_list;
-	const vector<tuple<int, int, int>> reduce_seq;
+	vector<tuple<int, int, int>> reduce_seq;
 
-	RainbowTable(vector<tuple<int, int, int>> reduce_seq_);
+	RainbowTable(vector<tuple<int, int, int>> const& reduce_seq);
+	RainbowTable();
     virtual ~RainbowTable();
 
     virtual void read(string filename);
     virtual void write(string filename);
+
+	virtual void populateRainbowHashmap();
 
 	/*
 	 * takes a starting key, k0
@@ -86,19 +124,24 @@ public:
 	 * for all i: ki -> vi = h(ki) -> k(i+1) = ri(vi)
 	 * return (k0, vk)
 	 */
-	virtual pair<RainbowKey, RainbowValue> computeChain(RainbowKey k0);
+	virtual pair<RainbowKey, RainbowValue>
+			computeChain(RainbowKey k0) const;
 	/*
-	 * takes in a list of start points, words
+	 * either takes in a list of start points, words
+	 * or takes in nothing and builds the words according to a rule
 	 * populates rainbow_list using reduce_seq
 	 */
-	void buildTable(vector<RainbowKey> const& words);
+	virtual void buildTable(vector<RainbowKey> const& words);
+	virtual void buildTable();
+
 	/*
 	 * takes a hashed value, v
 	 * checks if v is one of the terminating hashes
 	 * returns true and the corresponding starting key if so
 	 * returns false and some random key otherwise
 	 */
-	virtual pair<bool, RainbowKey> getChainStart(RainbowValue v);
+	virtual pair<bool, RainbowKey>
+			getChainStart(RainbowValue v) const;
 	/*
 	 * takes a hash, v
 	 * takes a starting key, start
@@ -106,7 +149,8 @@ public:
 	 * returns that key
 	 * ASSUMPTION: such a key exists
 	 */
-	virtual RainbowKey getInverseInChain(RainbowValue v, RainbowKey start);
+	virtual pair<bool, RainbowKey>
+			getInverseInChain(RainbowValue v, RainbowKey start) const;
 	/*
 	 * takes a hash, v
 	 * finds a chain to start from and traverses the chain
@@ -116,7 +160,8 @@ public:
 	 * 
 	 * THIS IS THE WHOLE POINT OF THE RAINBOW TABLE
 	 */
-	virtual pair<bool, RainbowKey> getInverse(RainbowValue v);
+	virtual pair<bool, RainbowKey>
+			getInverse(RainbowValue v) const;
 };
 
 
