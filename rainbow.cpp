@@ -44,11 +44,14 @@ RainbowValue RainbowKey::hash()
 	sha.Reset();
 	sha.Input(this->k[0]); sha.Input(this->k[1]); sha.Input(this->k[2]);
 	sha.Result(hashed);
-	// TODO: increment global SHA1 use count
+
+	//increment global SHA1 use count
+	hashcounter += 1;
 	
 	RainbowValue result(hashed);
 	return result;
 }
+unsigned int RainbowKey::hashcounter = 0;
 
 void RainbowKey::dbgPrint() const
 {
@@ -159,6 +162,9 @@ void RainbowTable::read(string filename)
 	}
 
 	fclose(file_handle);
+
+	for (auto const& p : this->rainbow_list)
+		this->rainbow_hashmap[p.second] = p.first;
 }
 void RainbowTable::write(string filename)
 {
@@ -184,10 +190,6 @@ void RainbowTable::write(string filename)
 	fclose(file_handle);
 }
 
-void RainbowTable::populateRainbowHashmap()
-{
-}
-
 pair<RainbowKey, RainbowValue> RainbowTable::computeChain(RainbowKey k0) const
 {
 	RainbowKey currkey = k0;
@@ -203,8 +205,11 @@ pair<RainbowKey, RainbowValue> RainbowTable::computeChain(RainbowKey k0) const
 }
 void RainbowTable::buildTable(vector<RainbowKey> const& words)
 {
-	for (RainbowKey word : words)
-		this->rainbow_list.push_back(this->computeChain(word));
+	for (RainbowKey word : words) {
+		auto chain = this->computeChain(word);
+		this->rainbow_list.push_back(chain);
+		this->rainbow_hashmap[chain.second] = chain.first;
+	}
 }
 void RainbowTable::buildTable()
 {
@@ -220,8 +225,10 @@ void RainbowTable::buildTable()
 				auto chain = this->computeChain(word);
 				auto currently_exists = this->getChainStart(chain.second).first;
 
-				if (!currently_exists)
+				if (!currently_exists) {
 					this->rainbow_list.push_back(chain);
+					this->rainbow_hashmap[chain.second] = chain.first;
+				}
 
 				printf("%s %u %u %u\n", currently_exists ? "not added" : "added",
 						static_cast<unsigned char>(c1),
@@ -234,14 +241,17 @@ void RainbowTable::buildTable()
 
 pair<bool, RainbowKey> RainbowTable::getChainStart(RainbowValue v) const
 {
-	for (auto const& p : this->rainbow_list) {
-		if (p.second == v) return make_pair(true, p.first);
+	pair<bool, RainbowKey> retval;
+
+	try {
+		RainbowKey chainstart = this->rainbow_hashmap.at(v);
+		retval = make_pair(true, chainstart);
+	} catch (out_of_range e) {
+		RainbowKey fake_key;
+		retval = make_pair(false, fake_key);
 	}
 
-	// not found, if we reach this point
-	
-	RainbowKey fake_key;
-	return make_pair(false, fake_key);
+	return retval;
 }
 pair<bool, RainbowKey> RainbowTable::getInverseInChain(RainbowValue v, RainbowKey start) const
 {

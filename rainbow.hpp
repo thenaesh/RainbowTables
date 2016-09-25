@@ -18,6 +18,7 @@
 #include <functional>
 #include <utility>
 #include <tuple>
+#include <stdexcept>
 
 using namespace std;
 
@@ -46,6 +47,7 @@ public:
     virtual RainbowKey& operator=(RainbowKey const& o);
 
 	virtual RainbowValue hash();
+	static unsigned int hashcounter;
 
 	virtual void dbgPrint() const;
 	virtual void dbgPrintln() const;
@@ -99,13 +101,26 @@ namespace std
 			return h;
 		}
 	};
+
+	template<>
+	class less<RainbowValue>
+	{
+	public:
+		bool operator()(RainbowValue const& a, RainbowValue const& b) const
+		{
+			for (int i=0; i<5; i++)
+				if (a.v[i] < b.v[i])
+					return true;
+			return false;
+		}
+	};
 }
 
 
 class RainbowTable
 {
 public:
-	unordered_list<RainbowValue, RainbowKey> rainbow_hashmap;
+	unordered_map<RainbowValue, RainbowKey> rainbow_hashmap;
 	vector<pair<RainbowKey, RainbowValue>> rainbow_list;
 	vector<tuple<int, int, int>> reduce_seq;
 
@@ -115,8 +130,6 @@ public:
 
     virtual void read(string filename);
     virtual void write(string filename);
-
-	virtual void populateRainbowHashmap();
 
 	/*
 	 * takes a starting key, k0
