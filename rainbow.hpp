@@ -108,9 +108,12 @@ namespace std
 	public:
 		bool operator()(RainbowValue const& a, RainbowValue const& b) const
 		{
-			for (int i=0; i<5; i++)
-				if (a.v[i] < b.v[i])
-					return true;
+			for (int i=0; i<5; i++) {
+				if		(a.v[i] < b.v[i]) return true;
+				else if	(a.v[i] > b.v[i]) return false;
+			}
+
+			// they are equal if we reach this point
 			return false;
 		}
 	};
@@ -120,7 +123,7 @@ namespace std
 class RainbowTable
 {
 public:
-	unordered_map<RainbowValue, RainbowKey> rainbow_hashmap;
+	unordered_map<RainbowValue, RainbowKey> rainbow_map;
 	vector<pair<RainbowKey, RainbowValue>> rainbow_list;
 	vector<tuple<int, int, int>> reduce_seq;
 

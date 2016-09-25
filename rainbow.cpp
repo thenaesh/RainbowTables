@@ -164,7 +164,7 @@ void RainbowTable::read(string filename)
 	fclose(file_handle);
 
 	for (auto const& p : this->rainbow_list)
-		this->rainbow_hashmap[p.second] = p.first;
+		this->rainbow_map[p.second] = p.first;
 }
 void RainbowTable::write(string filename)
 {
@@ -207,8 +207,12 @@ void RainbowTable::buildTable(vector<RainbowKey> const& words)
 {
 	for (RainbowKey word : words) {
 		auto chain = this->computeChain(word);
-		this->rainbow_list.push_back(chain);
-		this->rainbow_hashmap[chain.second] = chain.first;
+		auto currently_exists = this->getChainStart(chain.second).first;
+
+		if (!currently_exists) {
+			this->rainbow_list.push_back(chain);
+			this->rainbow_map[chain.second] = chain.first;
+		}
 	}
 }
 void RainbowTable::buildTable()
@@ -227,7 +231,7 @@ void RainbowTable::buildTable()
 
 				if (!currently_exists) {
 					this->rainbow_list.push_back(chain);
-					this->rainbow_hashmap[chain.second] = chain.first;
+					this->rainbow_map[chain.second] = chain.first;
 				}
 
 				printf("%s %u %u %u\n", currently_exists ? "not added" : "added",
@@ -244,7 +248,7 @@ pair<bool, RainbowKey> RainbowTable::getChainStart(RainbowValue v) const
 	pair<bool, RainbowKey> retval;
 
 	try {
-		RainbowKey chainstart = this->rainbow_hashmap.at(v);
+		RainbowKey chainstart = this->rainbow_map.at(v);
 		retval = make_pair(true, chainstart);
 	} catch (out_of_range e) {
 		RainbowKey fake_key;
