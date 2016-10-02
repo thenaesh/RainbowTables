@@ -214,15 +214,25 @@ tuple<RainbowKey, RainbowKey, RainbowValue> RainbowTable::computeChainPenultimat
 }
 void RainbowTable::buildTable(vector<RainbowKey> const& words)
 {
+	int collision_streak = 0;
+	int max_collision = 0;
+
 	for (RainbowKey word : words) {
 		auto chain = this->computeChainPenultimate(word);
 		auto currently_exists = this->getChainStart(get<2>(chain)).first;
 
+
 		if (!currently_exists) {
+			max_collision = (collision_streak > max_collision) ? collision_streak : max_collision;
 			this->rainbow_list.push_back(chain);
 			this->rainbow_map[get<2>(chain)] = get<0>(chain);
+			collision_streak = 0;
+		} else {
+			collision_streak++;
 		}
 	}
+
+	printf("Max Collision: %d\n", max_collision);
 }
 void RainbowTable::buildTable()
 {

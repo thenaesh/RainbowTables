@@ -147,7 +147,7 @@ int main()
 	RainbowTable tbl3(reduce_seq3);
 	RainbowTable tbl4(reduce_seq4);
 
-	bool build = false;
+	bool build = true;
 	if (build) {
 		tbl1.buildTable(words1); tbl1.write("RAINBOW1");
 		tbl2.buildTable(words2); tbl2.write("RAINBOW2");
