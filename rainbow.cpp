@@ -164,6 +164,64 @@ void RainbowTable::read(string filename)
 	for (auto const& entry : this->rainbow_list)
 		this->rainbow_map[get<2>(entry)] = get<0>(entry);
 }
+void RainbowTable::read(string filename, string collisionfilename)
+{
+	FILE* file_handle		= fopen(filename.c_str(), "r");
+	FILE* collision_handle	= fopen(collisionfilename.c_str(), "r");
+
+	this->generateWords();
+	long wordcount = 0;
+
+	while (!(feof(file_handle) || feof(collision_handle))) {
+		RainbowKey		ki;
+		RainbowKey		kf;
+		unsigned char	skip;
+
+		int r = fscanf(file_handle, "%c%c%c%c%c%c",
+							ki.k,
+							ki.k+1,
+							ki.k+2,
+							kf.k,
+							kf.k+1,
+							kf.k+2);
+		if (r < 6) break;
+
+		int rp = fscanf(collision_handle, "%c", &skip);
+
+		this->rainbow_list.push_back(make_tuple(ki, kf, kf.hash()));
+	}
+
+	fclose(collision_handle);
+	fclose(file_handle);
+
+	for (auto const& entry : this->rainbow_list)
+		this->rainbow_map[get<2>(entry)] = get<0>(entry);
+}
+void RainbowTable::write(string filename, string collisionfilename)
+{
+	FILE* file_handle		= fopen(filename.c_str(), "w");
+	FILE* collision_handle	= fopen(collisionfilename.c_str(), "w");
+
+	for (int it = 0; it < this->rainbow_list.size(); it++) {
+		auto const& entry	= this->rainbow_list[it];
+		unsigned char skip	= this->collisions[it];
+
+		RainbowKey ki = get<0>(entry);
+		RainbowKey kf = get<1>(entry);
+
+		fprintf(file_handle, "%c%c%c%c%c%c",
+							ki.k[0],
+							ki.k[1],
+							ki.k[2],
+							kf.k[0],
+							kf.k[1],
+							kf.k[2]);
+		fprintf(collision_handle, "%c", skip);
+	}
+
+	fflush(collision_handle);	fflush(file_handle);
+	fclose(collision_handle);	fclose(file_handle);
+}
 void RainbowTable::write(string filename)
 {
 	FILE* file_handle = nullptr;
@@ -214,8 +272,8 @@ tuple<RainbowKey, RainbowKey, RainbowValue> RainbowTable::computeChainPenultimat
 }
 void RainbowTable::buildTable(vector<RainbowKey> const& words)
 {
-	int collision_streak = 0;
-	int max_collision = 0;
+	unsigned char collision_streak = 0;
+	unsigned char max_collision = 0;
 
 	for (RainbowKey word : words) {
 		auto chain = this->computeChainPenultimate(word);
@@ -224,35 +282,40 @@ void RainbowTable::buildTable(vector<RainbowKey> const& words)
 
 		if (!currently_exists) {
 			max_collision = (collision_streak > max_collision) ? collision_streak : max_collision;
-			this->rainbow_list.push_back(chain);
+
+			this->rainbow_list.push_back(chain);			// if we do this
 			this->rainbow_map[get<2>(chain)] = get<0>(chain);
+
+			this->collisions.push_back(collision_streak);	// we also do this
 			collision_streak = 0;
-		} else {
-			collision_streak++;
 		}
+		else collision_streak++;
 	}
 
-	printf("Max Collision: %d\n", max_collision);
+	assert(this->rainbow_list.size() == this->collisions.size());
+	printf("Max Collision: %u\n", (unsigned int) max_collision);
 }
 void RainbowTable::buildTable()
 {
-	vector<RainbowKey> words;
+	this->generateWords();
+	this->buildTable(this->autogen_words);
+}
 
-	for (unsigned short c1 = 0; c1 < 256; c1 += 5) {
-		for (unsigned short c2 = 0; c2 < 256; c2 += 7) {
-			for (unsigned short c3 = 0; c3 < 256; c3 += 11) {
+void RainbowTable::generateWords()
+{
+	for (unsigned short c1 = 0; c1 < 256; c1 += 2) {
+		for (unsigned short c2 = 0; c2 < 256; c2 += 4) {
+			for (unsigned short c3 = 0; c3 < 256; c3 += 8) {
 				RainbowKey word;
 
 				word.k[0] = static_cast<unsigned char>(c1);
 				word.k[1] = static_cast<unsigned char>(c2);
 				word.k[2] = static_cast<unsigned char>(c3);
 
-				words.push_back(word);
+				this->autogen_words.push_back(word);
 			}
 		}
 	}
-
-	this->buildTable(words);
 }
 
 pair<bool, RainbowKey> RainbowTable::getChainStart(RainbowValue v) const

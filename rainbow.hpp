@@ -125,6 +125,8 @@ class RainbowTable
 public:
 	unordered_map<RainbowValue, RainbowKey> rainbow_map;
 	vector<tuple<RainbowKey, RainbowKey, RainbowValue>> rainbow_list;
+	vector<unsigned char> collisions;
+	vector<RainbowKey> autogen_words;
 	vector<tuple<int, int, int>> reduce_seq;
 
 	RainbowTable(vector<tuple<int, int, int>> const& reduce_seq);
@@ -132,7 +134,9 @@ public:
     virtual ~RainbowTable();
 
     virtual void read(string filename);
-    virtual void write(string filename);
+	virtual void read(string filename, string collisionfilename);
+	virtual void write(string filename, string collisionfilename);
+	virtual void write(string filename);
 
 	/*
 	 * takes a starting key, k0
@@ -155,6 +159,8 @@ public:
 	 */
 	virtual void buildTable(vector<RainbowKey> const& words);
 	virtual void buildTable();
+
+	virtual void generateWords();
 
 	/*
 	 * takes a hashed value, v
