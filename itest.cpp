@@ -3,27 +3,27 @@
 
 void createReduceSequence1(vector<tuple<int, int, int>>& reduce_seq)
 {
-	for (int a = 0; a < 180; a++)
+	for (int a = 0; a < 220; a++)
 		reduce_seq.push_back(make_tuple(a, 0, 0));
 }
 void createReduceSequence2(vector<tuple<int, int, int>>& reduce_seq)
 {
-	for (int b = 0; b < 180; b++)
+	for (int b = 0; b < 220; b++)
 		reduce_seq.push_back(make_tuple(0, b, 0));
 }
 void createReduceSequence3(vector<tuple<int, int, int>>& reduce_seq)
 {
-	for (int c = 0; c < 180; c++)
+	for (int c = 0; c < 210; c++)
 		reduce_seq.push_back(make_tuple(0, 0, c));
 }
 void createReduceSequence4(vector<tuple<int, int, int>>& reduce_seq)
 {
-	for (int d = 0; d < 180; d++)
+	for (int d = 0; d < 210; d++)
 		reduce_seq.push_back(make_tuple(d, (d*d)%256, 1));
 }
 void createReduceSequence5(vector<tuple<int, int, int>>& reduce_seq)
 {
-	for (int e = 0; e < 180; e++)
+	for (int e = 0; e < 210; e++)
 		reduce_seq.push_back(make_tuple(1, e, (e*e*e)%256));
 }
 
@@ -45,9 +45,9 @@ void generateWords(vector<RainbowKey>& words)
 void generateWords1(vector<RainbowKey>& words)
 {
 	RainbowKey word;
-	for (unsigned short c1 = 0; c1 < 256; c1 += 3) {
-		for (unsigned short c2 = 0; c2 < 256; c2 += 7) {
-			for (unsigned short c3 = 0; c3 < 256; c3 += 7) {
+	for (unsigned short c1 = 0; c1 < 256; c1 += 2) {
+		for (unsigned short c2 = 0; c2 < 256; c2 += 4) {
+			for (unsigned short c3 = 0; c3 < 256; c3 += 8) {
 				word.k[0] = static_cast<unsigned char>(c1);
 				word.k[1] = static_cast<unsigned char>(c2);
 				word.k[2] = static_cast<unsigned char>(c3);
@@ -60,9 +60,9 @@ void generateWords1(vector<RainbowKey>& words)
 void generateWords2(vector<RainbowKey>& words)
 {
 	RainbowKey word;
-	for (unsigned short c1 = 0; c1 < 256; c1 += 7) {
-		for (unsigned short c2 = 0; c2 < 256; c2 += 3) {
-			for (unsigned short c3 = 0; c3 < 256; c3 += 7) {
+	for (unsigned short c1 = 1; c1 < 256; c1 += 2) {
+		for (unsigned short c2 = 1; c2 < 256; c2 += 4) {
+			for (unsigned short c3 = 1; c3 < 256; c3 += 8) {
 				word.k[0] = static_cast<unsigned char>(c1);
 				word.k[1] = static_cast<unsigned char>(c2);
 				word.k[2] = static_cast<unsigned char>(c3);
@@ -145,20 +145,26 @@ int main()
 	RainbowTable tbl1(reduce_seq1);
 	RainbowTable tbl2(reduce_seq2);
 	RainbowTable tbl3(reduce_seq3);
+	RainbowTable tbl4(reduce_seq4);
 
+	bool build = false;
+	if (build) {
+		tbl1.buildTable(words1); tbl1.write("RAINBOW1");
+		tbl2.buildTable(words2); tbl2.write("RAINBOW2");
+		//tbl3.buildTable(words3); tbl3.write("RAINBOW3");
+		//tbl4.buildTable(words3); tbl4.write("RAINBOW3");
+	} else {
+		tbl1.read("RAINBOW1");
+		tbl2.read("RAINBOW2");
+		//tbl3.read("RAINBOW3");
+		//tbl4.read("RAINBOW4");
+	}
 
-	tbl1.buildTable(words1); tbl1.write("RAINBOW1");
-	tbl2.buildTable(words2); tbl2.write("RAINBOW2");
-	tbl3.buildTable(words3); tbl3.write("RAINBOW3");
-/*
-	tbl1.read("RAINBOW1");
-	tbl2.read("RAINBOW2");
-	tbl3.read("RAINBOW3");
-*/
 	
-	vector<RainbowTable*> tbls = {&tbl1, &tbl2, &tbl3};
+	vector<RainbowTable*> tbls = {&tbl1, &tbl2};
+	int T = 2;
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < T; i++) {
 		printf("Table %d Size: %u\n",				i+1, static_cast<unsigned int>(tbls[i]->rainbow_list.size()));
 		printf("Reduce Sequence %d Length: %u\n",	i+1, static_cast<unsigned int>(tbls[i]->reduce_seq.size()  ));
 	}
@@ -177,7 +183,7 @@ int main()
 		RainbowValue samplehash = sample.hash();
 
 		pair<bool, RainbowKey> inv;
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < T; i++) {
 			inv = tbls[i]->getInverse(samplehash);
 			if (inv.first && inv.second == sample) {
 				successes++;
@@ -192,6 +198,7 @@ int main()
 	printf("\n");
 
 	printf("Number of Hashes: %u\n\n", RainbowKey::hashcounter);
+	printf("Speedup Factor: %lu\n", (1L<<23) * 500 / RainbowKey::hashcounter);
 
 	return 0;
 }

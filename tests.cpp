@@ -57,20 +57,21 @@ bool io_test()
 	
 	if (tbl0.rainbow_list != tbl1.rainbow_list) return false;
 
-	pair<RainbowKey, RainbowValue> p1 = tbl1.rainbow_list.at(0);
-	pair<RainbowKey, RainbowValue> p2 = tbl1.rainbow_list.at(1);
-	pair<RainbowKey, RainbowValue> p3 = tbl1.rainbow_list.at(2);
-	pair<RainbowKey, RainbowValue> p4 = tbl1.rainbow_list.at(3);
-	pair<RainbowKey, RainbowValue> p5 = tbl1.rainbow_list.at(4);
-	p1.first.dbgPrint(); printf(" | "); p1.second.dbgPrint(); printf("\n");
-	p2.first.dbgPrint(); printf(" | "); p2.second.dbgPrint(); printf("\n");
-	p3.first.dbgPrint(); printf(" | "); p3.second.dbgPrint(); printf("\n");
-	p4.first.dbgPrint(); printf(" | "); p4.second.dbgPrint(); printf("\n");
-	p5.first.dbgPrint(); printf(" | "); p5.second.dbgPrint(); printf("\n");
+	auto p1 = tbl1.rainbow_list.at(0);
+	auto p2 = tbl1.rainbow_list.at(1);
+	auto p3 = tbl1.rainbow_list.at(2);
+	auto p4 = tbl1.rainbow_list.at(3);
+	auto p5 = tbl1.rainbow_list.at(4);
+	get<0>(p1).dbgPrint(); printf(" | "); get<1>(p1).dbgPrint(); printf("\t| "); get<2>(p1).dbgPrint(); printf("\n");
+	get<0>(p2).dbgPrint(); printf(" | "); get<1>(p2).dbgPrint(); printf("\t| "); get<2>(p2).dbgPrint(); printf("\n");
+	get<0>(p3).dbgPrint(); printf(" | "); get<1>(p3).dbgPrint(); printf("\t| "); get<2>(p3).dbgPrint(); printf("\n");
+	get<0>(p4).dbgPrint(); printf(" | "); get<1>(p4).dbgPrint(); printf("\t| "); get<2>(p4).dbgPrint(); printf("\n");
+	get<0>(p5).dbgPrint(); printf(" | "); get<1>(p5).dbgPrint(); printf("\t| "); get<2>(p5).dbgPrint(); printf("\n");
 
     return true;
 }
 
+/*
 bool hash_test()
 {
 	unsigned char testkey[3];
@@ -331,7 +332,7 @@ bool uniqueness_test()
 
 	return passed;
 }
-
+*/
 
 int main()
 {
@@ -340,7 +341,7 @@ int main()
 	printf("Reduce Sequence Length: %u\n", static_cast<unsigned int>(tbl.reduce_seq.size()));
 	map<string, bool> test_results;
 
-    //test_results["I/O Test"]				= io_test();
+    test_results["I/O Test"]				= io_test();
 	//test_results["Hash Test"]				= hash_test();
     //test_results["Reduce Test"]				= reduce_test();
 	//test_results["Chain Start Test"]		= chain_start_test();

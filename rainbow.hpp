@@ -124,7 +124,7 @@ class RainbowTable
 {
 public:
 	unordered_map<RainbowValue, RainbowKey> rainbow_map;
-	vector<pair<RainbowKey, RainbowValue>> rainbow_list;
+	vector<tuple<RainbowKey, RainbowKey, RainbowValue>> rainbow_list;
 	vector<tuple<int, int, int>> reduce_seq;
 
 	RainbowTable(vector<tuple<int, int, int>> const& reduce_seq);
@@ -142,6 +142,12 @@ public:
 	 */
 	virtual pair<RainbowKey, RainbowValue>
 			computeChain(RainbowKey k0) const;
+	/*
+	 * same thing as above, but also yields the penultimate key
+	 * after the last reduce, before hashing to the final value
+	 */
+	virtual tuple<RainbowKey, RainbowKey, RainbowValue>
+			computeChainPenultimate(RainbowKey k0) const;
 	/*
 	 * either takes in a list of start points, words
 	 * or takes in nothing and builds the words according to a rule

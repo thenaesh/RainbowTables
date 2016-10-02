@@ -145,26 +145,24 @@ void RainbowTable::read(string filename)
 	file_handle = fopen(filename.c_str(), "r");
 
 	while (!feof(file_handle)) {
-		RainbowKey   k;
-		RainbowValue v;
+		RainbowKey		ki;
+		RainbowKey		kf;
 
-		int r = fscanf(file_handle, "%c %c %c %u %u %u %u %u\n",
-							k.k,
-							k.k+1,
-							k.k+2,
-							v.v,
-							v.v+1,
-							v.v+2,
-							v.v+3,
-							v.v+4);
-		if (r < 8) break;
-		this->rainbow_list.push_back(make_pair(k, v));
+		int r = fscanf(file_handle, "%c%c%c%c%c%c",
+							ki.k,
+							ki.k+1,
+							ki.k+2,
+							kf.k,
+							kf.k+1,
+							kf.k+2);
+		if (r < 6) break;
+		this->rainbow_list.push_back(make_tuple(ki, kf, kf.hash()));
 	}
 
 	fclose(file_handle);
 
-	for (auto const& p : this->rainbow_list)
-		this->rainbow_map[p.second] = p.first;
+	for (auto const& entry : this->rainbow_list)
+		this->rainbow_map[get<2>(entry)] = get<0>(entry);
 }
 void RainbowTable::write(string filename)
 {
@@ -172,18 +170,16 @@ void RainbowTable::write(string filename)
 	file_handle = fopen(filename.c_str(), "w");
 
 	for (auto const& entry : this->rainbow_list) {
-		RainbowKey   k; k = entry.first.k;
-		RainbowValue v; v = entry.second.v;
+		RainbowKey ki = get<0>(entry);
+		RainbowKey kf = get<1>(entry);
 
-		fprintf(file_handle, "%c %c %c %u %u %u %u %u\n",
-							k.k[0],
-							k.k[1],
-							k.k[2],
-							v.v[0],
-							v.v[1],
-							v.v[2],
-							v.v[3],
-							v.v[4]);
+		fprintf(file_handle, "%c%c%c%c%c%c",
+							ki.k[0],
+							ki.k[1],
+							ki.k[2],
+							kf.k[0],
+							kf.k[1],
+							kf.k[2]);
 	}
 
 	fflush(file_handle);
@@ -203,44 +199,50 @@ pair<RainbowKey, RainbowValue> RainbowTable::computeChain(RainbowKey k0) const
 
 	return make_pair(k0, currval);
 }
+tuple<RainbowKey, RainbowKey, RainbowValue> RainbowTable::computeChainPenultimate(RainbowKey k0) const
+{
+	RainbowKey currkey = k0;
+	RainbowValue currval;
+
+	for (unsigned int i = 0; i < this->reduce_seq.size(); i++) {
+		currval = currkey.hash();
+		currkey = currval.reduce(this->reduce_seq[i]);
+	}
+	currval = currkey.hash();
+
+	return make_tuple(k0, currkey, currval);
+}
 void RainbowTable::buildTable(vector<RainbowKey> const& words)
 {
 	for (RainbowKey word : words) {
-		auto chain = this->computeChain(word);
-		auto currently_exists = this->getChainStart(chain.second).first;
+		auto chain = this->computeChainPenultimate(word);
+		auto currently_exists = this->getChainStart(get<2>(chain)).first;
 
 		if (!currently_exists) {
 			this->rainbow_list.push_back(chain);
-			this->rainbow_map[chain.second] = chain.first;
+			this->rainbow_map[get<2>(chain)] = get<0>(chain);
 		}
 	}
 }
 void RainbowTable::buildTable()
 {
-	RainbowKey word;
+	vector<RainbowKey> words;
 
 	for (unsigned short c1 = 0; c1 < 256; c1 += 5) {
 		for (unsigned short c2 = 0; c2 < 256; c2 += 7) {
 			for (unsigned short c3 = 0; c3 < 256; c3 += 11) {
+				RainbowKey word;
+
 				word.k[0] = static_cast<unsigned char>(c1);
 				word.k[1] = static_cast<unsigned char>(c2);
 				word.k[2] = static_cast<unsigned char>(c3);
 
-				auto chain = this->computeChain(word);
-				auto currently_exists = this->getChainStart(chain.second).first;
-
-				if (!currently_exists) {
-					this->rainbow_list.push_back(chain);
-					this->rainbow_map[chain.second] = chain.first;
-				}
-
-				printf("%s %u %u %u\n", currently_exists ? "not added" : "added",
-						static_cast<unsigned char>(c1),
-						static_cast<unsigned char>(c2),
-						static_cast<unsigned char>(c3));
+				words.push_back(word);
 			}
 		}
 	}
+
+	this->buildTable(words);
 }
 
 pair<bool, RainbowKey> RainbowTable::getChainStart(RainbowValue v) const
