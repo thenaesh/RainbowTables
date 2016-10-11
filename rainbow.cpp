@@ -177,18 +177,16 @@ void RainbowTable::read(string filename, string collisionfilename)
 		RainbowKey		kf;
 		unsigned char	skip;
 
-		int r = fscanf(file_handle, "%c%c%c%c%c%c",
-							ki.k,
-							ki.k+1,
-							ki.k+2,
-							kf.k,
-							kf.k+1,
-							kf.k+2);
-		if (r < 6) break;
-
+		int r = fscanf(file_handle, "%c%c%c", kf.k, kf.k+1, kf.k+2);
 		int rp = fscanf(collision_handle, "%c", &skip);
 
+		if (r < 3 || rp != 1) break;
+
+		wordcount += skip;
+		ki = this->autogen_words[wordcount++];
+
 		this->rainbow_list.push_back(make_tuple(ki, kf, kf.hash()));
+		this->collisions.push_back(skip);
 	}
 
 	fclose(collision_handle);
@@ -206,16 +204,9 @@ void RainbowTable::write(string filename, string collisionfilename)
 		auto const& entry	= this->rainbow_list[it];
 		unsigned char skip	= this->collisions[it];
 
-		RainbowKey ki = get<0>(entry);
 		RainbowKey kf = get<1>(entry);
 
-		fprintf(file_handle, "%c%c%c%c%c%c",
-							ki.k[0],
-							ki.k[1],
-							ki.k[2],
-							kf.k[0],
-							kf.k[1],
-							kf.k[2]);
+		fprintf(file_handle, "%c%c%c", kf.k[0], kf.k[1], kf.k[2]);
 		fprintf(collision_handle, "%c", skip);
 	}
 
@@ -281,8 +272,6 @@ void RainbowTable::buildTable(vector<RainbowKey> const& words)
 
 
 		if (!currently_exists) {
-			max_collision = (collision_streak > max_collision) ? collision_streak : max_collision;
-
 			this->rainbow_list.push_back(chain);			// if we do this
 			this->rainbow_map[get<2>(chain)] = get<0>(chain);
 
@@ -293,7 +282,6 @@ void RainbowTable::buildTable(vector<RainbowKey> const& words)
 	}
 
 	assert(this->rainbow_list.size() == this->collisions.size());
-	printf("Max Collision: %u\n", (unsigned int) max_collision);
 }
 void RainbowTable::buildTable()
 {
@@ -338,14 +326,11 @@ pair<bool, RainbowKey> RainbowTable::getInverseInChain(RainbowValue v, RainbowKe
 	RainbowValue val = start.hash();
 
 	for (int i = 0; i < this->reduce_seq.size(); i++) {
-		//printf("Current val before R%d: ", i); val.dbgPrintln();
 		if (val == v) return make_pair(true, key);
 
 		key = val.reduce(this->reduce_seq[i]);
 		val = key.hash();
 	}
-
-	//printf("val = "); val.dbgPrintln();
 
 	if (val != v)	return make_pair(false, key);
 	else			return make_pair(true,  key);
@@ -357,12 +342,9 @@ pair<bool, RainbowKey> RainbowTable::getInverse(RainbowValue v) const
 	for (int i=K; i>=0; i--) {
 		RainbowValue hash_to_check = v;
 
-		//printf("i = %d\n", i);
 		for (int j = i; j<K; j++) {
-			//printf("%d ", j);
 			hash_to_check = hash_to_check.reduce(this->reduce_seq[j]).hash();
 		}
-		//printf("\n");
 
 		auto chain_to_start_traversing = this->getChainStart(hash_to_check);
 		if (chain_to_start_traversing.first) {
