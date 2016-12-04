@@ -349,10 +349,6 @@ pair<bool, RainbowKey> RainbowTable::getInverse(RainbowValue v) const
 		auto chain_to_start_traversing = this->getChainStart(hash_to_check);
 		if (chain_to_start_traversing.first) {
 			// we have found a guaranteed starting point
-			//printf("start traversing, K = %d, i = %d\n", K, i);
-			//printf("Hash to find: "); v.dbgPrintln();
-			//printf("Hash to check: "); hash_to_check.dbgPrintln();
-			//printf("Key to start from: "); chain_to_start_traversing.second.dbgPrintln();
 			auto inv = this->getInverseInChain(v, chain_to_start_traversing.second);
 			if (inv.first) return make_pair(true, inv.second);
 		}
