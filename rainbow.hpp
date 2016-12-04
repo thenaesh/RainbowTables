@@ -36,17 +36,19 @@ class RainbowValue;
 class RainbowKey
 {
 public:
-    unsigned char k[3];	// 3 bytes
+  unsigned char k[3];	// 3 bytes
 
-    RainbowKey();
-	RainbowKey(RainbowKey const& cpy);
-    RainbowKey(unsigned char const* const key);
+  RainbowKey();
+  RainbowKey(RainbowKey const& cpy);
+  RainbowKey(unsigned char const* const key);
 
-    virtual bool operator==(RainbowKey const& o) const;
-    virtual bool operator!=(RainbowKey const& o) const;
-    virtual RainbowKey& operator=(RainbowKey const& o);
+  virtual bool operator==(RainbowKey const& o) const;
+  virtual bool operator!=(RainbowKey const& o) const;
+  virtual RainbowKey& operator=(RainbowKey const& o);
 
+  // creates the SHA1 sum of the RainbowKey, encapsulated in a RainbowValue
 	virtual RainbowValue hash();
+  // counts the number of hash operations performed during a given program run
 	static unsigned int hashcounter;
 
 	virtual void dbgPrint() const;
@@ -60,19 +62,26 @@ public:
 class RainbowValue
 {
 public:
-    unsigned int v[5];	// 20 bytes
+  unsigned int v[5];	// 20 bytes
 
-    RainbowValue();
+  RainbowValue();
 	RainbowValue(RainbowValue const& cpy);
-    RainbowValue(unsigned int const* const val);
+  RainbowValue(unsigned int const* const val);
 
-    virtual bool operator==(RainbowValue const& o) const;
-    virtual bool operator!=(RainbowValue const& o) const;
-    virtual RainbowValue& operator=(RainbowValue const& o);
+  virtual bool operator==(RainbowValue const& o) const;
+  virtual bool operator!=(RainbowValue const& o) const;
+  virtual RainbowValue& operator=(RainbowValue const& o);
 
-    virtual RainbowKey reduce(unsigned int c0,
+  /*
+  * creates a new RainbowKey by selecting bytes from the RainbowValue
+  * for each byte i of the RainbowKey to be created (which is 3 bytes long),
+  *  byte i is created by taking byte i of the RainbowValue
+  *  and adding ci to it, modulo 256
+  * (ci is one of the parameters c0, c1, c2)
+  */
+  virtual RainbowKey reduce(unsigned int c0,
 	                          unsigned int c1,
-							  unsigned int c2);
+							              unsigned int c2);
 	virtual RainbowKey reduce(tuple<int, int, int> cs);
 
 	virtual void dbgPrint() const;
@@ -123,17 +132,38 @@ namespace std
 class RainbowTable
 {
 public:
+  /*
+  * O(1) access datastructure to store rainbow table
+  * key:   chain end (a RainbowValue)
+  * value: corresponding chain start (a RainbowKey)
+  */
 	unordered_map<RainbowValue, RainbowKey> rainbow_map;
+
+  /*
+  * auxillary datastructure, also to store rainbow table
+  * stores a list of 3-tuples
+  * 1st element: chain start (RainbowKey)
+  * 2nd element: RainbowKey that hashes directly to the chain end
+  * 3rd element: chain end (RainbowValue)
+  */
 	vector<tuple<RainbowKey, RainbowKey, RainbowValue>> rainbow_list;
+
+  /*
+  * list containing numbers of colliding entries discarded
+  * element i is the number of colliding entries encountered
+  *  (and discarded) between entries (i-1) and i in rainbow_list
+  * useful to reduce the size of the table by not storing chain starts
+  *  while also removing collisions
+  */
 	vector<unsigned char> collisions;
 	vector<RainbowKey> autogen_words;
 	vector<tuple<int, int, int>> reduce_seq;
 
 	RainbowTable(vector<tuple<int, int, int>> const& reduce_seq);
 	RainbowTable();
-    virtual ~RainbowTable();
+  virtual ~RainbowTable();
 
-    virtual void read(string filename);
+  virtual void read(string filename);
 	virtual void read(string filename, string collisionfilename);
 	virtual void write(string filename, string collisionfilename);
 	virtual void write(string filename);
@@ -185,7 +215,7 @@ public:
 	 * to find the key that hashes to v
 	 * returns true and the key if found
 	 * returns false and a random key otherwise (FAILURE)
-	 * 
+	 *
 	 * THIS IS THE WHOLE POINT OF THE RAINBOW TABLE
 	 */
 	virtual pair<bool, RainbowKey>
@@ -196,4 +226,3 @@ public:
 
 
 #endif
-
