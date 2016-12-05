@@ -209,7 +209,7 @@ bool chain_inverse_test()
 	RainbowKey k3(k3_);
 	RainbowValue v3 = k3.hash().reduce(tbl.reduce_seq[0])
 	                    .hash().reduce(tbl.reduce_seq[1])
-                        .hash().reduce(tbl.reduce_seq[2]).hash();
+	                    .hash().reduce(tbl.reduce_seq[2]).hash();
 	
 	if (tbl.getInverseInChain(v3, k3).second != k3.hash().reduce(tbl.reduce_seq[0])
 	                                              .hash().reduce(tbl.reduce_seq[1])
@@ -248,12 +248,12 @@ bool full_inverse_test()
 
 	RainbowKey t1 = k1;
 	RainbowKey t2 = k2.hash().reduce(tbl.reduce_seq[0])
-					  .hash().reduce(tbl.reduce_seq[1])
-					  .hash().reduce(tbl.reduce_seq[2])
-					  .hash().reduce(tbl.reduce_seq[3])
-					  .hash().reduce(tbl.reduce_seq[4])
-					  .hash().reduce(tbl.reduce_seq[5])
-					  .hash().reduce(tbl.reduce_seq[6]);
+	                  .hash().reduce(tbl.reduce_seq[1])
+	                  .hash().reduce(tbl.reduce_seq[2])
+	                  .hash().reduce(tbl.reduce_seq[3])
+	                  .hash().reduce(tbl.reduce_seq[4])
+	                  .hash().reduce(tbl.reduce_seq[5])
+	                  .hash().reduce(tbl.reduce_seq[6]);
 	RainbowKey t3 = k3.hash().reduce(tbl.reduce_seq[0]).hash().reduce(tbl.reduce_seq[1]);
 
 	auto inv1 = tbl.getInverse(t1.hash());
