@@ -335,19 +335,19 @@ bool uniqueness_test()
 
 int main()
 {
-	RainbowTable tbl;
-	printRainbowSequence(tbl.reduce_seq);
-	printf("Reduce Sequence Length: %u\n", static_cast<unsigned int>(tbl.reduce_seq.size()));
-	map<string, bool> test_results;
+    RainbowTable tbl;
+    printRainbowSequence(tbl.reduce_seq);
+    printf("Reduce Sequence Length: %u\n", static_cast<unsigned int>(tbl.reduce_seq.size()));
+    map<string, bool> test_results;
 
-    test_results["I/O Test"]				= io_test();
-	test_results["Hash Test"]				= hash_test();
-    test_results["Reduce Test"]				= reduce_test();
-	test_results["Chain Start Test"]		= chain_start_test();
-	test_results["Chain Inverse Test"]		= chain_inverse_test();
-	test_results["Full Inverse Test"]		= full_inverse_test();
-	test_results["General Test"]			= general_test();
-	test_results["Uniqueness Test"]			= uniqueness_test();
+    test_results["I/O Test"]                = io_test();
+    test_results["Hash Test"]               = hash_test();
+    test_results["Reduce Test"]             = reduce_test();
+    test_results["Chain Start Test"]        = chain_start_test();
+    test_results["Chain Inverse Test"]      = chain_inverse_test();
+    test_results["Full Inverse Test"]       = full_inverse_test();
+    test_results["General Test"]            = general_test();
+    test_results["Uniqueness Test"]         = uniqueness_test();
 
     printf("\n\n");
     for (auto const& test_result : test_results)
