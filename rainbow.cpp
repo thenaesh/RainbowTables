@@ -176,10 +176,12 @@ void RainbowTable::read(string filename, string collisionfilename)
 		RainbowKey		ki;
 		RainbowKey		kf;
 		unsigned char	skip;
-
+		
+		// number of characters read in each scanf call
 		int r = fscanf(file_handle, "%c%c%c", kf.k, kf.k+1, kf.k+2);
 		int rp = fscanf(collision_handle, "%c", &skip);
 
+		// checking for malformed input files
 		if (r < 3 || rp != 1) break;
 
 		wordcount += skip;

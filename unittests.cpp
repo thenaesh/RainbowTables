@@ -1,3 +1,7 @@
+/**************
+ * UNIT TESTS *
+ **************/
+
 #include "rainbow.hpp"
 #include "sha1/sha1.h"
 
@@ -197,8 +201,7 @@ bool chain_inverse_test()
 	RainbowKey k2(k2_);
 	RainbowValue v2 = k2.hash()
 						.reduce(tbl.reduce_seq[0]).hash();
-	if (tbl.getInverseInChain(v2, k2).second != k2.hash()
-												  .reduce(tbl.reduce_seq[0])) return false;
+	if (tbl.getInverseInChain(v2, k2).second != k2.hash().reduce(tbl.reduce_seq[0])) return false;
 
 	unsigned char k3_[3];
 	k3_[0] = 'g';
@@ -206,12 +209,18 @@ bool chain_inverse_test()
 	k3_[2] = 'i';
 	RainbowKey k3(k3_);
 	RainbowValue v3 = k3.hash()
-						.reduce(tbl.reduce_seq[0]).hash()
-						.reduce(tbl.reduce_seq[1]).hash()
-						.reduce(tbl.reduce_seq[2]).hash();
+						.reduce(tbl.reduce_seq[0])
+						.hash()
+						.reduce(tbl.reduce_seq[1])
+						.hash()
+						.reduce(tbl.reduce_seq[2])
+						.hash();
+	
 	if (tbl.getInverseInChain(v3, k3).second != k3.hash()
-												  .reduce(tbl.reduce_seq[0]).hash()
-												  .reduce(tbl.reduce_seq[1]).hash()
+												  .reduce(tbl.reduce_seq[0])
+												  .hash()
+												  .reduce(tbl.reduce_seq[1])
+												  .hash()
 												  .reduce(tbl.reduce_seq[2])) return false;
 
 	return true;
