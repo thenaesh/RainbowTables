@@ -199,8 +199,7 @@ bool chain_inverse_test()
 	k2_[1] = 'e';
 	k2_[2] = 'f';
 	RainbowKey k2(k2_);
-	RainbowValue v2 = k2.hash()
-						.reduce(tbl.reduce_seq[0]).hash();
+	RainbowValue v2 = k2.hash().reduce(tbl.reduce_seq[0]).hash();
 	if (tbl.getInverseInChain(v2, k2).second != k2.hash().reduce(tbl.reduce_seq[0])) return false;
 
 	unsigned char k3_[3];
@@ -208,20 +207,13 @@ bool chain_inverse_test()
 	k3_[1] = 'h';
 	k3_[2] = 'i';
 	RainbowKey k3(k3_);
-	RainbowValue v3 = k3.hash()
-						.reduce(tbl.reduce_seq[0])
-						.hash()
-						.reduce(tbl.reduce_seq[1])
-						.hash()
-						.reduce(tbl.reduce_seq[2])
-						.hash();
+	RainbowValue v3 = k3.hash().reduce(tbl.reduce_seq[0])
+	                    .hash().reduce(tbl.reduce_seq[1])
+                        .hash().reduce(tbl.reduce_seq[2]).hash();
 	
-	if (tbl.getInverseInChain(v3, k3).second != k3.hash()
-												  .reduce(tbl.reduce_seq[0])
-												  .hash()
-												  .reduce(tbl.reduce_seq[1])
-												  .hash()
-												  .reduce(tbl.reduce_seq[2])) return false;
+	if (tbl.getInverseInChain(v3, k3).second != k3.hash().reduce(tbl.reduce_seq[0])
+	                                              .hash().reduce(tbl.reduce_seq[1])
+	                                              .hash().reduce(tbl.reduce_seq[2])) return false;
 
 	return true;
 }
